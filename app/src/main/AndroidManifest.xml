@@ -13,7 +13,7 @@
         android:theme="@style/Theme.Miprimeractivity"
         tools:targetApi="31">
         <activity
-            android:name=".MainActivity2"
+            android:name=".ATlistaso"
             android:exported="false" />
         <activity
             android:name=".MainActivity"

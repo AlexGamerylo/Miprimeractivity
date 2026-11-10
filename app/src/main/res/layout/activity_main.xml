@@ -20,70 +20,63 @@
             android:text="@string/titulo_formulario"
             android:textAppearance="?attr/textAppearanceHeadlineSmall" />
 
-        <!-- Nombre completo -->
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/layoutNombre"
-            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+        <EditText
+            android:id="@+id/txtid"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
-            android:hint="@string/hint_nombre">
+            android:hint="@string/hint_id"
+            android:inputType="number" />
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etNombre"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:autofillHints="name"
-                android:inputType="textPersonName|textCapWords" />
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <!-- Teléfono -->
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/layoutTelefono"
-            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+        <EditText
+            android:id="@+id/txtnombre"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
-            android:hint="@string/hint_telefono">
+            android:autofillHints="givenName"
+            android:hint="@string/hint_nombre"
+            android:inputType="textPersonName|textCapWords" />
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etTelefono"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:autofillHints="phone"
-                android:inputType="phone"
-                android:maxLength="15" />
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <!-- Correo -->
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/layoutCorreo"
-            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+        <EditText
+            android:id="@+id/txtapellido"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="24dp"
-            android:hint="@string/hint_correo">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etCorreo"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:autofillHints="emailAddress"
-                android:inputType="textEmailAddress" />
-        </com.google.android.material.textfield.TextInputLayout>
+            android:autofillHints="familyName"
+            android:hint="@string/hint_apellido"
+            android:inputType="textPersonName|textCapWords" />
 
         <Button
-            android:id="@+id/btnEnviar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/btn_enviar" />
+            android:onClick="Guardar"
+            android:text="@string/btn_guardar" />
 
-        <TextView
-            android:id="@+id/tvResultado"
+        <Button
             android:layout_width="match_parent"
-            android:layout_height="54dp"
-            android:layout_marginTop="24dp"
-            android:textAppearance="?attr/textAppearanceBodyLarge" />
+            android:layout_height="wrap_content"
+            android:onClick="Buscar"
+            android:text="@string/btn_buscar" />
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="Actualizar"
+            android:text="@string/btn_actualizar" />
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="Eliminar"
+            android:text="@string/btn_eliminar" />
+
+        <Button
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:onClick="Listar"
+            android:text="@string/btn_listado" />
 
     </LinearLayout>
 </ScrollView>

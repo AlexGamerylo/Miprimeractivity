@@ -1,91 +1,129 @@
 package com.example.miprimeractivity;
 
+import android.content.ContentValues;
+import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
-import android.util.Patterns;
-import android.widget.Button;
-import android.widget.TextView;
+import android.provider.BaseColumns;
+import android.view.View;
+import android.widget.EditText;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
-import com.google.android.material.textfield.TextInputEditText;
-import com.google.android.material.textfield.TextInputLayout;
+import com.example.miprimeractivity.conexiondb.FeedReaderContract;
+import com.example.miprimeractivity.conexiondb.FeedReaderDbHelper;
 
 public class MainActivity extends AppCompatActivity {
-
-    private TextInputLayout layoutNombre, layoutTelefono, layoutCorreo;
-    private TextInputEditText etNombre, etTelefono, etCorreo;
-    private TextView tvResultado;
+    private EditText txtid;
+    private EditText txtnombre;
+    private EditText txtapellido;
+    private FeedReaderDbHelper dbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
-
-        // Referencias a las vistas del formulario
-        layoutNombre = findViewById(R.id.layoutNombre);
-        layoutTelefono = findViewById(R.id.layoutTelefono);
-        layoutCorreo = findViewById(R.id.layoutCorreo);
-        etNombre = findViewById(R.id.etNombre);
-        etTelefono = findViewById(R.id.etTelefono);
-        etCorreo = findViewById(R.id.etCorreo);
-        tvResultado = findViewById(R.id.tvResultado);
-        Button btnEnviar = findViewById(R.id.btnEnviar);
-
-        btnEnviar.setOnClickListener(v -> enviarFormulario());
+        txtid = findViewById(R.id.txtid);
+        txtnombre = findViewById(R.id.txtnombre);
+        txtapellido = findViewById(R.id.txtapellido);
+        // El helper se crea cuando la Activity ya tiene un contexto válido
+        dbHelper = new FeedReaderDbHelper(this);
     }
 
-    private void enviarFormulario() {
-        String nombre = texto(etNombre);
-        String telefono = texto(etTelefono);
-        String correo = texto(etCorreo);
+    @Override
+    protected void onDestroy() {
+        dbHelper.close();
+        super.onDestroy();
+    }
 
-        boolean valido = true;
+    public void Listar(View vista) {
+        startActivity(new Intent(this, ATlistaso.class));
+    }
 
-        // Nombre: no vacío
-        if (nombre.isEmpty()) {
-            layoutNombre.setError(getString(R.string.error_nombre));
-            valido = false;
-        } else {
-            layoutNombre.setError(null);
+    // ---------- CREATE ----------
+    public void Guardar(View vista) {
+        String nombre = txtnombre.getText().toString().trim();
+        String apellido = txtapellido.getText().toString().trim();
+        if (nombre.isEmpty() || apellido.isEmpty()) {
+            mostrarMensaje("Ingresa nombre y apellido");
+            return;
         }
-
-        // Teléfono: solo dígitos (se permite + al inicio), entre 7 y 15
-        if (!telefono.matches("\\+?\\d{7,15}")) {
-            layoutTelefono.setError(getString(R.string.error_telefono));
-            valido = false;
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(FeedReaderContract.FeedEntry.column1, nombre);
+        values.put(FeedReaderContract.FeedEntry.column2, apellido);
+        long newRowId = db.insert(FeedReaderContract.FeedEntry.nameTable, null, values);
+        if (newRowId == -1) {
+            mostrarMensaje("No se pudo guardar el registro");
         } else {
-            layoutTelefono.setError(null);
+            txtid.setText(String.valueOf(newRowId));
+            mostrarMensaje("Se guardó el registro con clave: " + newRowId);
         }
+    }
 
-        // Correo: formato válido
-        if (!Patterns.EMAIL_ADDRESS.matcher(correo).matches()) {
-            layoutCorreo.setError(getString(R.string.error_correo));
-            valido = false;
-        } else {
-            layoutCorreo.setError(null);
+    // ---------- READ ----------
+    public void Buscar(View vista) {
+        String id = leerId();
+        if (id == null) return;
+
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        String[] projection = {
+                BaseColumns._ID,
+                FeedReaderContract.FeedEntry.column1,
+                FeedReaderContract.FeedEntry.column2};
+        String selection = FeedReaderContract.FeedEntry._ID + " = ?";
+        String[] selectionArgs = {id};
+
+        // try-with-resources cierra el Cursor automáticamente al terminar
+        try (Cursor cursor = db.query(
+                FeedReaderContract.FeedEntry.nameTable, // tabla
+                projection,                             // columnas a devolver
+                selection,                              // WHERE _id = ?
+                selectionArgs,                          // valor del ?
+                null,                                   // GROUP BY
+                null,                                   // HAVING
+                null                                    // ORDER BY
+        )) {
+            if (cursor.moveToFirst()) {
+                txtnombre.setText(cursor.getString(
+                        cursor.getColumnIndexOrThrow(FeedReaderContract.FeedEntry.column1)));
+                txtapellido.setText(cursor.getString(
+                        cursor.getColumnIndexOrThrow(FeedReaderContract.FeedEntry.column2)));
+            } else {
+                txtnombre.setText("");
+                txtapellido.setText("");
+                mostrarMensaje("No existe un registro con Id " + id);
+            }
         }
+    }
 
-        if (!valido) {
-            tvResultado.setText("");
+    // ---------- UPDATE ----------
+    public void Actualizar(View vista) {
+        String id = leerId();
+        if (id == null) return;
+        String nombre = txtnombre.getText().toString().trim();
+        String apellido = txtapellido.getText().toString().trim();
+        if (nombre.isEmpty() || apellido.isEmpty()) {
+            mostrarMensaje("Ingresa nombre y apellido");
             return;
         }
 
-        tvResultado.setText(getString(R.string.resultado, nombre, telefono, correo));
-        Toast.makeText(this, R.string.msg_enviado, Toast.LENGTH_SHORT).show();
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(FeedReaderContract.FeedEntry.column1, nombre);
+        values.put(FeedReaderContract.FeedEntry.column2, apellido);
+        String selection = FeedReaderContract.FeedEntry._ID + " = ?";
+        String[] selectionArgs = {id};
+
+        int count = db.update(FeedReaderContract.FeedEntry.nameTable, values, selection, selectionArgs);
+        if (count > 0) {
+            mostrarMensaje("Se actualizó el registro con clave: " + id);
+        } else {
+            mostrarMensaje("No existe un registro con clave: " + id);
+        }
     }
 
-    private String texto(TextInputEditText campo) {
-        return campo.getText() == null ? "" : campo.getText().toString().trim();
-    }
-}
+
+    
