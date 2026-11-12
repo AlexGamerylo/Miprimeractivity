@@ -34,8 +34,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        dbHelper.close();
-        super.onDestroy();
+        dbHelper.close();super.onDestroy();
     }
 
     public void Listar(View vista) {
@@ -125,5 +124,40 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // ---------- DELETE ----------
+    public void Eliminar(View vista) {
+        String id = leerId();
+        if (id == null) return;
+
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        String selection = FeedReaderContract.FeedEntry._ID + " = ?";
+        String[] selectionArgs = {id};
+        int deletedRows = db.delete(FeedReaderContract.FeedEntry.nameTable, selection, selectionArgs);
+        if (deletedRows > 0) {
+            limpiarCampos();
+        }
+        mostrarMensaje("Se eliminó " + deletedRows + " registro(s)");
+    }
+
+    /** Devuelve el Id escrito, o null (y avisa) si el campo esta vacio. */
+    private String leerId() {
+        String id = txtid.getText().toString().trim();
+        if (id.isEmpty()) {
+            mostrarMensaje("Ingresa el Id del registro");
+            return null;
+        }
+        return id;
+    }
+
+    private void limpiarCampos() {
+        txtid.setText("");
+        txtnombre.setText("");
+        txtapellido.setText("");
+    }
+
+    private void mostrarMensaje(String mensaje){
+        Toast.makeText(this, mensaje, Toast.LENGTH_LONG).show();
+    }
+}
 
     
